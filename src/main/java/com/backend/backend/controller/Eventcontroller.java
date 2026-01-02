@@ -73,7 +73,7 @@ public class Eventcontroller {
     return ResponseEntity.ok(userservice.updateuserdetail(userdto, id));
   }
 
-  @CrossOrigin(origins = "http://localhost:5173")
+  @CrossOrigin(origins = "https://super-malabi-d5a941.netlify.app")
   @PostMapping("/auth/google")
   public ResponseEntity<UserLogindto> googleLogin(@RequestBody Googlelogindto request) {
 
