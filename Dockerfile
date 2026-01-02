@@ -1,14 +1,23 @@
-# Java 17 runtime
-FROM eclipse-temurin:17-jre
-
-# App directory inside container
+# ---------- BUILD STAGE ----------
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy Spring Boot jar
-COPY target/backend-0.0.1-SNAPSHOT.jar app.jar
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline
 
-# Expose Spring Boot port
+COPY src src
+RUN ./mvnw clean package -DskipTests
+
+
+# ---------- RUN STAGE ----------
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+
+COPY --from=build /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 9090
 
-# Run the application
 ENTRYPOINT ["java","-jar","app.jar"]
