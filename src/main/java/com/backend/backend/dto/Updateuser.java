@@ -1,7 +1,5 @@
 package com.backend.backend.dto;
 
-import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,13 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Userdto {
-    
-    private UUID id;
+public class Updateuser {
+   
     private String name;
     private String email;
     private Long number;
-    private Integer createdYear;
-    private String loginby;
-
 }

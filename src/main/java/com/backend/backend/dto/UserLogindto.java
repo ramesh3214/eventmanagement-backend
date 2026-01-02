@@ -4,18 +4,15 @@ import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class Userdto {
-    
+public class UserLogindto {
+
+    private String token;
     private UUID id;
     private String name;
     private String email;
-    private Long number;
-    private Integer createdYear;
-    private String loginby;
-
+    private String role;
+    private Integer createdat;
 }

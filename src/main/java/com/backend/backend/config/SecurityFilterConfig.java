@@ -4,27 +4,64 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.backend.backend.util.JwtAuthFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityFilterConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // 🔥 THIS LINE FIXES 403 ON POST
+            .cors(cors -> cors.disable())
             .csrf(csrf -> csrf.disable())
 
-            // 🔥 Disable default login page & basic auth
+            // JWT = STATELESS
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // NO form login / NO basic auth
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
 
-            // 🔥 Allow signup without auth
+            // PUBLIC AND PROTECTED ENDPOINTS
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/signup", "/health").permitAll()
+                .requestMatchers(
+                    "/", 
+                    "/error", 
+                    "/favicon.ico", 
+                    "/signup", 
+                    "/signin", 
+                    "/health", 
+                    "/css/**", 
+                    "/js/**", 
+                    "/images/**", 
+                    "/event/**", 
+                    "/booking/**",
+                    "/user/**",
+                    "/passwordchange",
+                    "/auth/google"
+
+                ).permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
+            )
+
+            // JWT FILTER
+            .addFilterBefore(
+                jwtAuthFilter,
+                UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
