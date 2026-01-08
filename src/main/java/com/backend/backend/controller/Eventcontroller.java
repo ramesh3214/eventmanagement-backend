@@ -4,9 +4,13 @@ import org.springframework.web.bind.annotation.*;
 
 import com.backend.backend.dto.Adduserdto;
 import com.backend.backend.dto.Bookingdto;
+import com.backend.backend.dto.Bookingemaildto;
+import com.backend.backend.dto.Enquireyemail;
 import com.backend.backend.dto.EventaddDto;
 import com.backend.backend.dto.Eventdatadto;
 import com.backend.backend.dto.Googlelogindto;
+import com.backend.backend.dto.OrderRequestdto;
+import com.backend.backend.dto.PaymentResponse;
 import com.backend.backend.dto.Updateuser;
 import com.backend.backend.dto.UserLogindto;
 import com.backend.backend.dto.Userbookingdto;
@@ -15,10 +19,13 @@ import com.backend.backend.dto.Userlogindata;
 import com.backend.backend.dto.Userpasswordchange;
 import com.backend.backend.repository.Eventrepo;
 import com.backend.backend.service.Bookingservice;
+import com.backend.backend.service.Cashfreeservice;
+import com.backend.backend.service.EmailService;
 import com.backend.backend.service.Eventservice;
 import com.backend.backend.service.Userservice;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -38,6 +45,8 @@ public class Eventcontroller {
   private final Userservice userservice;
   private final Eventservice eventservice;
   private final Bookingservice bookingservice;
+  private final EmailService emailservice;
+  private final Cashfreeservice cashfreeservice;
 
   @PostMapping("/signup")
   public ResponseEntity<Userdto> signup(
@@ -128,6 +137,46 @@ public class Eventcontroller {
 
     return ResponseEntity.ok(bookingservice.getbooking(id));
   }
+
+  @PostMapping("/email-send")
+  public ResponseEntity<String> sendemail(@RequestBody Bookingemaildto body) {
+    System.out.println("EMAIL API HIT: " + body);
+    emailservice.sendBookingConfirmation(body);
+    return ResponseEntity.ok("Email sent successfully");
+  }
+
+  @PostMapping("/send-enquiry")
+  public ResponseEntity<String> sendenquiry(@RequestBody Enquireyemail query) {
+    emailservice.sendquery(query);
+
+    return ResponseEntity.ok("query send ");
+
+  }
+
+  @PostMapping("/create-payment")
+  public ResponseEntity<PaymentResponse> createOrder(
+      @RequestBody OrderRequestdto request) {
+    return ResponseEntity.ok(cashfreeservice.createOrder(request));
+  }
+
+  @GetMapping("/verify-payment")
+public ResponseEntity<?> verifyPayment(@RequestParam String orderId) {
+
+    String paymentStatus = cashfreeservice.verifyPayment(orderId);
+
+    if ("PAID".equalsIgnoreCase(paymentStatus)) {
+        return ResponseEntity.ok(Map.of(
+            "status", "SUCCESS",
+            "message", "PAYMENT CONFIRMED"
+        ));
+    }
+
+    return ResponseEntity.badRequest().body(Map.of(
+        "status", "FAILED",
+        "payment_status", paymentStatus
+    ));
+}
+
 
   @GetMapping("/health")
   public String health() {

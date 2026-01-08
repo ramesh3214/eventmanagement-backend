@@ -11,59 +11,60 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.backend.backend.util.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityFilterConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+        private final JwtAuthFilter jwtAuthFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-            .cors(cors -> cors.disable())
-            .csrf(csrf -> csrf.disable())
+                http
+                                .cors(Customizer.withDefaults())
+                                .csrf(csrf -> csrf.disable())
 
-            // JWT = STATELESS
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // NO form login / NO basic auth
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
+                                .formLogin(form -> form.disable())
+                                .httpBasic(basic -> basic.disable())
 
-            // PUBLIC AND PROTECTED ENDPOINTS
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/", 
-                    "/error", 
-                    "/favicon.ico", 
-                    "/signup", 
-                    "/signin", 
-                    "/health", 
-                    "/css/**", 
-                    "/js/**", 
-                    "/images/**", 
-                    "/event/**", 
-                    "/booking/**",
-                    "/user/**",
-                    "/passwordchange",
-                    "/auth/google"
+                                .authorizeHttpRequests(auth -> auth
+                                                // ✅ REQUIRED FOR CORS
+                                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
+                                                .permitAll()
 
-                ).permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
+                                                .requestMatchers(
+                                                                "/",
+                                                                "/error",
+                                                                "/favicon.ico",
+                                                                "/signup",
+                                                                "/signin",
+                                                                "/health",
+                                                                "/css/**",
+                                                                "/js/**",
+                                                                "/images/**",
+                                                                "/event/**",
+                                                                "/booking/**",
+                                                                "/user/**",
+                                                                "/passwordchange",
+                                                                "/auth/google",
+                                                                "/email-send",
+                                                                "/send-enquiry",
+                                                                "/create-payment",
+                                                                "/verify-payment")
+                                                .permitAll()
 
-            // JWT FILTER
-            .addFilterBefore(
-                jwtAuthFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                .anyRequest().authenticated())
 
-        return http.build();
-    }
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
+
 }
