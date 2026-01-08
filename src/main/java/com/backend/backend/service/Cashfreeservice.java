@@ -45,7 +45,7 @@ public class Cashfreeservice {
 
     // 2️⃣ Set return_url correctly
     OrderMeta meta = new OrderMeta();
-    meta.setReturn_url("http://localhost:5173/event-success");
+    meta.setReturn_url("https://super-malabi-d5a941.netlify.app/event-success");
 
     orderRequest.setOrder_meta(meta);
 
